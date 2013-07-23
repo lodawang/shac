@@ -1,0 +1,349 @@
+*******************
+	文件变动记录
+*******************
+鉴于SHAC要求遵守CSR流程，添加deploy.txt,记录每次版本更新的涉及文件，便于增量部署到测试环境、正式环境
+
+
+TC发布文档轮询接口
+==================
+* TCPortlistener.class
+* applicationContext.xml
+* hibernate.cfg.xml
+* web.xml
+* commons-net-3.1.jar
+* TCIssueTaskDaoHibernate.class
+* TaskDeptItemDaoHibernate.class
+* DictDataDaoHibernate.class
+* IssueTaskDaoHibernate.class
+* TCIssueTask.class
+* DictData.class
+* IssueTaskAction.class
+* DictDataAction.class
+* docTaskReciver.jsp
+* issueTaskList.jsp
+* dictDataEdit.jsp
+* -- 版本升级操作修改  --
+* IssueTask.class
+* DocumentAction.class
+* ProcessDocumentAction.class
+* ReceiveDocumentAction.class
+* docTaskUpdVerManu-drawing.jsp
+* docTaskUpdVerManu-techdoc.jsp
+* docViewMana.jsp
+* docTaskEditManu-drawing.jsp
+
+数据库SC_TC_ISSUETASK 相比原数据库新增了 PREVIOUSITEM，PREVIOUSASSEM，PREVIOUSVER三个字段，并记得添加SC_TC_SQ序列（这个是tc插入时 使用）
+===================
+DROP TABLE SHAC.SC_TC_ISSUETASK CASCADE CONSTRAINTS;
+
+CREATE TABLE SHAC.SC_TC_ISSUETASK
+(
+  ID             VARCHAR2(32 CHAR)              NOT NULL,
+  PARTID         VARCHAR2(255 CHAR),
+  UPDATESTATUS   VARCHAR2(2 BYTE),
+  PREVIOUSITEM   VARCHAR2(15 BYTE),
+  PREVIOUSASSEM  VARCHAR2(15 BYTE),
+  PREVIOUSVER    VARCHAR2(10 BYTE),
+  DOCTYPE        VARCHAR2(255 CHAR),
+  DOCDATE        DATE,
+  EXECUTEDATE    DATE,
+  MODIFYNUMB     VARCHAR2(30 CHAR),
+  VEROFTC        VARCHAR2(255 CHAR),
+  TECHDOCCLASS   VARCHAR2(255 CHAR),
+  DRAWINGNUMB    VARCHAR2(255 CHAR),
+  DRAWINGPAGE    NUMBER(10),
+  DRAWINGSIZE    VARCHAR2(255 CHAR),
+  ASSEMBLY       VARCHAR2(255 CHAR),
+  ASSEMBTITLE    VARCHAR2(255 CHAR),
+  ASSEMBORNOT    VARCHAR2(10 CHAR),
+  CLIENT         VARCHAR2(255 CHAR),
+  MODELCODE      VARCHAR2(255 CHAR),
+  CLTPARTNUMB    VARCHAR2(255 CHAR),
+  PROCESSIN      VARCHAR2(255 CHAR),
+  ATTACHFILE     VARCHAR2(255 CHAR),
+  ISSUETO        VARCHAR2(500 CHAR),
+  TASKSTATUS     VARCHAR2(2 BYTE),
+  CREATETIME     TIMESTAMP(6),
+  DEALSTATUS     VARCHAR2(2 BYTE),
+  DEALTIME       TIMESTAMP(6),
+  FAILLOG        VARCHAR2(200 BYTE)
+)
+
+create sequence SC_TC_SQ minvalue 1 maxvalue 99999999 increment by 1 start with 1; 
+
+CREATE OR REPLACE trigger auto_id_tri
+before insert on Sc_Tc_Issuetask
+for each row
+begin
+    select SC_TC_SQ.nextval into :NEW.ID from dual;
+end;
+
+技术文档，各类型发放部门
+===================================
+修改原字典表，针对技术文档的不同类型发放不同部门
+ALTER TABLE SHAC.SC_DICTDATA
+ADD (D_ISSUE VARCHAR2(1000 BYTE));
+
+
+
+sc_issuetask 增加字段 sysUID
+===========================
+作为文档升级的依据，相同sysUID的文档属于同一份文档的不同版本
+ALTER TABLE SHAC.SC_ISSUETASK ADD (sysUID  VARCHAR2(32 CHAR));
+
+新增表sc_tc_heart(TC任务心跳记录表，每运行一次，更新下，这样可以及时发现，默认插入一条时间)
+===========================
+CREATE TABLE SHAC.SC_TC_HEART
+(
+  ID      VARCHAR2(32),
+  DOTIME  TIMESTAMP(6)
+)
+ALTER TABLE SHAC.SC_TC_HEART ADD (
+  PRIMARY KEY
+  (ID)
+  ENABLE VALIDATE)
+insert  into SC_TC_HEART select '1',sysdate from dual 
+
+2012/08/14
+=============================
+* com.shac.model TCHeart
+* com.shac.model DictData
+* com.shac.dao.hibernate TCHeartDaoHibernate
+* com.shac.webapp.listener TCPortlistener
+* applicationContext.xml
+* hibernate.cfg.xml
+* docListManage.jsp
+
+厂部标号修改
+==============================
+//厂部编号
+ALTER TABLE SHAC.SC_DICTDATA
+ADD (D_DEPNO NUMBER(10));
+
+//厂部流水号
+CREATE TABLE SHAC.SC_DEPNO
+(
+  ID     VARCHAR2(32),
+  DEPNO  NUMBER,
+  COUNT  NUMBER    DEFAULT 0
+)
+
+ALTER TABLE SHAC.SC_DEPNO ADD (
+  CONSTRAINT SC_DEPNO_PK
+  PRIMARY KEY
+  (ID)
+  ENABLE VALIDATE)
+  
+二次发放
+======================
+ALTER TABLE SHAC.sc_user ADD (workshop  VARCHAR2(32 CHAR));
+create table sc_issuerule (id varchar2(32 char) not null, docType varchar2(10 char), procDocClass varchar2(100 char), procMode varchar2(100 char), processIn varchar2(20 char), primary key (id));
+create table sc_rulerecipient (id varchar2(32 char) not null, factory_id varchar2(32 char), rule_id varchar2(32 char), workshop_id varchar2(32 char), primary key (id));
+ALTER TABLE SHAC.sc_taskdeptitem ADD (issueType VARCHAR2(5 CHAR));
+ALTER TABLE SHAC.sc_taskdeptitem ADD (workshop_id VARCHAR2(32 CHAR));
+
+编号和工艺文档
+======================
+ALTER TABLE SHAC.SC_USER ADD (IS_ENGINEER VARCHAR(1 char));
+---主记录表
+CREATE TABLE SHAC.SC_MNO
+(
+  ID       VARCHAR2(32 CHAR)                    NOT NULL, --id
+  USERID      VARCHAR2(32 CHAR),                          --用户id 
+  NOTIME   TIMESTAMP(6),                                  --获得编号的时间
+  NOTYPE   VARCHAR2(32 CHAR),                             --获得编号的类型（正式或试制） 
+  NOS      VARCHAR2(800 CHAR),                            --获得的编号，用逗号分隔
+  NOCOUNT  NUMBER                                         --获得编号的数量
+)
+
+---正式表
+CREATE TABLE SHAC.SC_ZNO
+(
+  ID      NUMBER                    NOT NULL,
+  USERID  VARCHAR2(32 CHAR),
+  NOTIME  TIMESTAMP(6)
+)
+
+ALTER TABLE SHAC.SC_ZNO
+ ADD CONSTRAINT SC_ZNO_PK
+  PRIMARY KEY
+  (ID)
+  ENABLE VALIDATE
+
+create sequence SC_ZNO_SQ minvalue 1 maxvalue 99999999 increment by 1 start with 1; 
+
+
+
+---试制表
+CREATE TABLE SHAC.SC_SNO
+(
+  ID      NUMBER                     NOT NULL,
+  USERID  VARCHAR2(32 CHAR),
+  NOTIME  TIMESTAMP(6)
+)
+
+ALTER TABLE SHAC.SC_SNO
+ ADD CONSTRAINT SC_SNO_PK
+  PRIMARY KEY
+  (ID)
+  ENABLE VALIDATE
+  
+create sequence SC_SNO_SQ minvalue 1 maxvalue 99999999 increment by 1 start with 1; 
+
+区分部分厂部不需二次发放
+======================
+ALTER TABLE SHAC.SC_DICTDATA ADD (ALONE  number(1,0));
+
+编号增加工号
+=========================================
+ALTER TABLE SHAC.SC_MNO ADD (JOBNO VARCHAR2(32 CHAR));
+
+2012/09/12 工艺导入
+=========================================
+ALTER TABLE SHAC.SC_ISSUETASK ADD (USERID VARCHAR2(32 CHAR));
+ALTER TABLE SHAC.SC_ISSUETASK ADD (STATUS VARCHAR2(10 CHAR));
+
+2012/09/13 保存导入文件的分发单位
+=========================================
+ALTER TABLE SHAC.SC_ISSUETASK ADD (TASKDEP VARCHAR2(255 CHAR));
+
+swf文件增加管理员打印版本
+========================
+ALTER TABLE SHAC.SC_ISSUETASK ADD (adminPrintFile  VARCHAR2(255 CHAR));
+
+2012/10/08 历史版本可以回收
+========================
+ALTER TABLE SHAC.SC_TASKDEPTITEM ADD (RECOVER VARCHAR2(5 CHAR));
+
+增加车间管理员角色
+========================
+Insert into shac.SC_ROLE (ID, CODE, CREATETIME, NAME) Values ('5', 'ROLE_RECVADMIN_WS', TO_TIMESTAMP('2012/10/10 0:01:31.000000','YYYY/fmMMfm/fmDDfm fmHH24fm:MI:SS.FF'), '车间管理员');
+
+swf文件增加普通打印版本
+========================
+ALTER TABLE SHAC.SC_ISSUETASK ADD (printFile  VARCHAR2(255 CHAR));
+
+增加TC接口中，如果是修改类型可找不到原始文档，当新文件发布的标志（当MISSUP为1的时候表示是找不到修改变新增的）
+========================
+ALTER TABLE SHAC.SC_ISSUETASK ADD (MISSUP VARCHAR2(2 CHAR));
+
+标志是文档是图纸类型，可附件不是pdf文件
+========================
+ALTER TABLE SHAC.SC_ISSUETASK ADD (ERROATTACH VARCHAR2(2 CHAR));
+
+
+2013/01/12 发放记录表中添加签收时间和回收销毁时间
+========================
+ALTER TABLE SHAC.SC_TASKDEPTITEM ADD (SIGNTIME  TIMESTAMP(6));
+ALTER TABLE SHAC.SC_TASKDEPTITEM ADD (DESTROYTIME  TIMESTAMP(6));
+
+2013/02/25 记录TC传过来的记录的临时表，发放后才进入正式表
+================================================
+CREATE TABLE SHAC.SC_ISSUETASK_TC
+(
+  ID              VARCHAR2(32 CHAR)             NOT NULL,
+  ASSEMBLY        VARCHAR2(255 CHAR),
+  ATTACHFILE      VARCHAR2(255 CHAR),
+  CLIENT          VARCHAR2(255 CHAR),
+  CLTPARTNUMB     VARCHAR2(255 CHAR),
+  CREATETIME      TIMESTAMP(6),
+  DOCTYPE         VARCHAR2(255 CHAR),
+  DOCVERSION      VARCHAR2(255 CHAR),
+  DRAWINGNUMB     VARCHAR2(255 CHAR),
+  DRAWINGPAGE     NUMBER(10),
+  DRAWINGSIZE     VARCHAR2(255 CHAR),
+  HISTORY         VARCHAR2(255 CHAR),
+  LASTUPDATE      TIMESTAMP(6),
+  MODELCODE       VARCHAR2(255 CHAR),
+  PARTID          VARCHAR2(255 CHAR),
+  PROCESSIN       VARCHAR2(255 CHAR),
+  TASKSTATUS      VARCHAR2(255 CHAR),
+  TASKTYPE        VARCHAR2(255 CHAR),
+  TECHDOCCLASS    VARCHAR2(255 CHAR),
+  UPDATED         VARCHAR2(255 CHAR),
+  VIEWFILE        VARCHAR2(255 CHAR),
+  ASSEMBORNOT     NUMBER(1),
+  VEROFTC         VARCHAR2(255 CHAR),
+  ASSEMBTITLE     VARCHAR2(255 CHAR),
+  IMPSTATUS       VARCHAR2(10 CHAR),
+  PROCDOCCLASS    VARCHAR2(100 CHAR),
+  PROCMODE        VARCHAR2(100 CHAR),
+  BETA            VARCHAR2(2 CHAR),
+  DOCDATE         DATE,
+  SYSUID          VARCHAR2(32 CHAR),
+  STATUS          VARCHAR2(10 CHAR),
+  USERID          VARCHAR2(32 CHAR),
+  TASKDEP         VARCHAR2(255 CHAR),
+  ADMINPRINTFILE  VARCHAR2(255 CHAR),
+  MISSUP          VARCHAR2(2 CHAR),
+  PRINTFILE       VARCHAR2(255 CHAR),
+  ERROATTACH      VARCHAR2(2 CHAR),
+  PREVIOUSITEM   VARCHAR2(15 BYTE),
+  PREVIOUSASSEM  VARCHAR2(15 BYTE),
+  DEALSTATUS     VARCHAR2(2 BYTE),
+  DEALTIME       TIMESTAMP(6),
+  FAILLOG        VARCHAR2(200 BYTE)
+)
+ALTER TABLE SHAC.SC_ISSUETASK_TC
+ ADD CONSTRAINT SC_ISSUETASK_TC_PK
+  PRIMARY KEY
+  (ID)
+  ENABLE VALIDATE;
+
+CREATE TABLE SHAC.SC_TASKDEPTITEM_TC
+(
+  ID           VARCHAR2(32 CHAR)                NOT NULL,
+  CREATETIME   TIMESTAMP(6)                     NOT NULL,
+  HISTORY      VARCHAR2(255 CHAR),
+  T_STATUS     VARCHAR2(10 CHAR),
+  CITYID       VARCHAR2(32 CHAR),
+  TSKID        VARCHAR2(32 CHAR),
+  ISSUETYPE    VARCHAR2(5 CHAR),
+  WORKSHOP_ID  VARCHAR2(32 CHAR),
+  RECOVER      VARCHAR2(5 CHAR),
+  SIGNTIME     TIMESTAMP(6),
+  DESTROYTIME  TIMESTAMP(6)
+)
+
+ALTER TABLE SHAC.SC_TASKDEPTITEM_TC
+ ADD CONSTRAINT SC_TASKDEPTITEM_TC_R01 
+  FOREIGN KEY (TSKID) 
+  REFERENCES SHAC.SC_ISSUETASK_TC (ID)
+  ENABLE VALIDATE;
+  
+  ALTER TABLE SHAC.SC_TASKDEPTITEM_TC
+ ADD CONSTRAINT SC_TASKDEPTITEM_TC_R02 
+  FOREIGN KEY (CITYID) 
+  REFERENCES SHAC.SC_DICTDATA (ID)
+  ENABLE VALIDATE;
+  
+普通用户可见发放单位  
+===========================================
+  ALTER TABLE SHAC.SC_USER
+ ADD (ISSUESEE  VARCHAR2(1 CHAR));
+ 
+意见反馈表
+===========================================
+CREATE TABLE SHAC.SC_ADVICE
+(
+  ID          VARCHAR2(32 CHAR),
+  SENDERID    VARCHAR2(32 CHAR),
+  RECEIVERID  VARCHAR2(32 CHAR),
+  CREATETIME  TIMESTAMP(6),
+  TSKID       VARCHAR2(32 CHAR),
+  ADLEVEL     VARCHAR2(1 CHAR),
+  BAKEONE     VARCHAR2(255 CHAR),
+  BAKETWO     VARCHAR2(255 CHAR),
+  STATUS      VARCHAR2(1 CHAR),
+  FID         VARCHAR2(32 CHAR),
+  RESULTBAKE  VARCHAR2(255 CHAR)
+)
+
+
+
+
+ALTER TABLE SHAC.SC_ADVICE ADD (
+  CONSTRAINT SC_ADVICE_PK
+  PRIMARY KEY
+  (ID)
+  ENABLE VALIDATE)

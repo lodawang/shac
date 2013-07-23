@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="js.build" default="clean">
+    <description>js.build for ANT</description>
+    <property name="src" location="WebRoot/js" />
+    <property name="build" location="build" />
+    <property name="target" location="WebRoot/js" />
+    <property name="lib" location="tools"/>
+    <property name="charset" value="utf-8"/>
+
+    <target name="init">
+        <mkdir dir="${build}"/>
+    </target>
+
+    <target name="concat" depends="init">
+        <concat destfile="${build}/easyui-datagrid-all.js" encoding="${charset}" outputencoding="${charset}">
+        	<path path="${src}/jquery.panel.js" />
+			<path path="${src}/jquery.linkbutton.js" />
+			<path path="${src}/jquery.pagination.js" />
+			<path path="${src}/jquery.resizable.js" />
+			<path path="${src}/jquery.datagrid.js" />
+        </concat>
+        <replaceregexp match="@DEBUG@" replace="" flags="g" byline="true" file="${build}/easyui-datagrid-all.js" encoding="${charset}" />
+    </target>
+
+    <target name="compress" depends="concat">
+        <java jar="${lib}/yuicompressor-2.4.6.jar" fork="true">
+            <arg line="--type js --charset utf-8 ${build}/easyui-datagrid-all.js -o ${target}/easyui-datagrid-min.js"/>
+        </java>
+
+    </target>
+
+    <target name="clean" depends="compress">
+        <delete dir="${build}"/>
+    </target>
+
+</project>

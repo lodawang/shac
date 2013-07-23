@@ -1,0 +1,14 @@
+<!DOCTYPE validators PUBLIC "-//OpenSymphony Group//XWork Validator 1.0.2//EN"
+    "http://www.opensymphony.com/xwork/xwork-validator-1.0.2.dtd">
+<validators>
+    <field name="user.passWord">
+        <field-validator type="requiredstring">
+            <message>请输入您的密码</message>
+        </field-validator>
+        <field-validator type="stringlength">
+            <param name="maxLength">6</param>
+            <param name="minLength">3</param>
+            <message>密码可由英文字母、数字、汉字组成； 长度为3-16个字符</message>
+        </field-validator>     
+    </field>
+</validators>

@@ -1,0 +1,34 @@
+<!-- NOTE: If you're working offline, you might have to change the DOCTYPE to the following:-->
+
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<!--
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+-->
+
+<hibernate-configuration>
+<session-factory>
+	<mapping class="com.shac.model.DictData" />
+	<mapping class="com.shac.model.Menu" />
+	<mapping class="com.shac.model.Role" />
+	<mapping class="com.shac.model.RoleUser" />
+	<mapping class="com.shac.model.User" />
+	<mapping class="com.shac.model.UserLog" />
+	<mapping class="com.shac.model.UserMenu" />
+	<mapping class="com.shac.model.IssueTask" />
+	<mapping class="com.shac.model.TaskDeptItem" />
+	<mapping class="com.shac.model.PrintLog" />
+	<mapping class="com.shac.model.EmployeeNumber" />
+	<mapping class="com.shac.model.TCIssueTask" />
+	<mapping class="com.shac.model.TCHeart" />
+	<mapping class="com.shac.model.IssueRule" />
+	<mapping class="com.shac.model.RuleRecipient" />
+	<mapping class="com.shac.model.Zno" />
+	<mapping class="com.shac.model.Sno" />
+	<mapping class="com.shac.model.Mno" />
+	<mapping class="com.shac.model.IssueTaskTC" />
+	<mapping class="com.shac.model.TaskDeptItemTC" />
+	<mapping class="com.shac.model.Advice" />
+</session-factory>
+</hibernate-configuration>

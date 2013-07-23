@@ -1,0 +1,26 @@
+/* CSS Document */
+
+html, body, div, p, ul, li, dl, dt, dd, h1, h2, h3, h4, h5, h6, form, input, select, button, textarea, iframe, table, th, td { margin: 0; padding: 0; }
+img { border: 0 none; vertical-align: top; }
+ul, li { list-style-type: none; }
+h1, h2, h3, h4, h5, h6 { font-size: 14px; }
+a, a:link { text-decoration: none; }
+a:visited {  }
+a:active, a:hover { text-decoration: none; }
+a:focus { outline: none; }
+
+body {
+	color: #000;
+	line-height: 1.8;
+	font-family: "微软雅黑";
+	font-size: 14px; background:url(../img/login_bg.jpg) repeat-x
+}
+.space{ clear:both}
+
+.mian{width:1255px; margin:auto; }
+.form_bg{ background:url(../img/login_5.jpg) no-repeat; width:493px; height:250px; padding:20px 0 0 0}
+.copy_bg{ background:url(../img/login_6.jpg) no-repeat; width:463px; height:146px; padding:10px 0 0 30px}
+.user_bg,.code_bg{ background:url(../img/user_bg.png) no-repeat; width:185px; height:29px; border:0; font-size:16px; color:#1f344b; font-weight:bold; padding:6px 5px 0 5px}
+.code_bg{background:url(../img/code_bg.png) no-repeat; width:95px;}
+
+

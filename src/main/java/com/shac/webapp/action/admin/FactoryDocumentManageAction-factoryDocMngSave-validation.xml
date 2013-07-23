@@ -1,0 +1,40 @@
+<!DOCTYPE validators PUBLIC "-//OpenSymphony Group//XWork Validator 1.0.2//EN"
+    "http://www.opensymphony.com/xwork/xwork-validator-1.0.2.dtd">
+<validators>
+    <field name="docu.partid">
+        <field-validator type="requiredstring">
+            <message>请输入工艺文档ID</message>
+        </field-validator>
+        <field-validator type="stringlength">
+            <param name="maxLength">20</param>
+            <param name="minLength">2</param>
+            <message>长度为${minLength} - ${maxLength}个字符</message>
+        </field-validator>     
+    </field>
+    <field name="docu.procDocClass">
+        <field-validator type="requiredstring">
+            <message>请选择工艺文档分类</message>
+        </field-validator>
+    </field>
+    <field name="docu.client">
+        <field-validator type="requiredstring">
+            <message>请选择客户</message>
+        </field-validator>
+    </field>
+    <field name="docu.modelCode">
+        <field-validator type="requiredstring">
+            <message>请选择车型</message>
+        </field-validator>
+    </field>
+    <field name="docu.processIn">
+        <field-validator type="requiredstring">
+            <message>请选择生产状态</message>
+        </field-validator>
+    </field>
+    <field name="attach">
+        <field-validator type="fieldexpression">
+			<param name="expression"><![CDATA[(docu.id!='' ||(attach!=null && attach.length()>0))]]></param>
+			<message>请选择上传文件</message>
+		</field-validator>
+    </field>
+</validators>
